@@ -6,13 +6,12 @@
 #include <QMap>
 #include <QRandomGenerator>
 
-static const QMap<int, QString> COL_MAP = {{0, "菜名"},
-                                           {1, "价格"},
-                                           {2, "数量"}}
+Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget) {
+    const QString FOOD = "食材";
+    const QString PRICE = "价格";
+    const QString AMOUNT = "数量(斤)";
+    const QVector<QString> COLS = {FOOD, PRICE, AMOUNT};
 
-Widget::Widget(QWidget * parent)
-    : QWidget(parent),
-                                ui(new Ui::Widget) {
     ui->setupUi(this);
     ui->foodsTable->setShowGrid(true); // 设置显示格子线
     ui->foodsTable->setSelectionBehavior(
@@ -23,15 +22,16 @@ Widget::Widget(QWidget * parent)
     ui->foodsTable->setStyleSheet(
         "selection-background-color:lightblue;"); // 设置选中背景色
 
-    ui->foodsTable->setRowCount(30);   // 设置行数
-    ui->foodsTable->setColumnCount(2); // 设置列数
+    ui->foodsTable->setRowCount(30);             // 设置行数
+    ui->foodsTable->setColumnCount(COLS.size()); // 设置列数
 
     ui->totalLayout->setStretchFactor(ui->foodsTable, 2);
     ui->totalLayout->setStretchFactor(ui->resultEdit, 1);
 
     QStringList header;
-    header << "菜式"
-           << "价格";
+    for (const auto &col : COLS) {
+        header << col;
+    }
     ui->foodsTable->setHorizontalHeaderLabels(header);
 
     // Set random Chinese food names and prices
@@ -62,10 +62,14 @@ Widget::Widget(QWidget * parent)
             QRandomGenerator::global()->bounded(chineseFoods.size()));
         QString price = QString::number(QRandomGenerator::global()->bounded(
             10, 100)); // Random price between 10 and 99
+        QString amount = QString::number(QRandomGenerator::global()->bounded(
+            10, 100)); // Random price between 10 and 99
         QTableWidgetItem *foodItem = new QTableWidgetItem(food);
         QTableWidgetItem *priceItem = new QTableWidgetItem(price);
-        ui->foodsTable->setItem(row, 0, foodItem);
-        ui->foodsTable->setItem(row, 1, priceItem);
+        QTableWidgetItem *amountItem = new QTableWidgetItem(amount);
+        ui->foodsTable->setItem(row, COLS.indexOf(FOOD), foodItem);
+        ui->foodsTable->setItem(row, COLS.indexOf(PRICE), priceItem);
+        ui->foodsTable->setItem(row, COLS.indexOf(AMOUNT), amountItem);
     }
 
     connect(ui->confiremButton, &QPushButton::clicked, this,
