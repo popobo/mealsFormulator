@@ -1,72 +1,49 @@
 import parse_foods_excel as pf
 import parse_order_excel as po
+import write_result_excel as wre
 import random
 import copy
+from fractions import Fraction
 
 foodItems = pf.read_food_items_from_excel("采购单.xlsx", "食材明细")
 orderItems = po.parse_order_excel("采购单.xlsx", "报餐情况")
 
-# 统计肉类数量
-totalMeatQty = 0.0
-totalVegetableQty = 0.0
+totalMeatQty = Fraction()
+totalVegetableQty = Fraction()
+totalOtherQty = Fraction()
 
 meatItems = []
 vegetableItems = []
+otherItems = []
+seasoningItems = []
 
 kindOfMeat = 0
 kindOfVegetable = 0
+kindOfOther = 0
 
 peopleCount = 0
 
-averageMeatQty = 0.0
-averageVegetableQty = 0.0
-
-for f in foodItems:
-    if f.category == pf.Category.MEAT:
-        totalMeatQty = totalMeatQty + f.quantity
-        meatItems.append(f)
-    if f.category == pf.Category.VEGETABLE:
-        totalVegetableQty = totalVegetableQty + f.quantity
-        vegetableItems.append(f)
-
-# 肉的种类个数
-kindOfMeat = len(meatItems)
-
-# 蔬菜种类个数
-kindOfVegetable = len(vegetableItems)
-        
-# 计算人次
-for o in orderItems:
-    peopleCount = peopleCount + o.breakfast + o.lunch + o.dinner
-
-print("肉类总量：", totalMeatQty)
-print("蔬菜总量：", totalVegetableQty)
-print("总人次：", peopleCount)
-
-# 计算这个月的人均肉量和菜量
-averageMeatQty = totalMeatQty / peopleCount
-averageVegetableQty = totalVegetableQty / peopleCount
-print("人均肉量：", averageMeatQty)
-print("人均菜量：", averageVegetableQty)
-
-def is_float_zero(num):
-    return abs(num) < 1e-6  # 使用一个非常小的阈值来判断是否接近于0
+averageMeatQty = Fraction()
+averageVegetableQty = Fraction()
+averageOtherQty = Fraction()
 
 # 去掉数量为0的食材
 def filterFoodItems():
     global kindOfMeat
     global kindOfVegetable
+    global kindOfOther
     for i in meatItems:
-        if is_float_zero(i.quantity):
-            print("remove: ", i.name)
+        if i.quantity == 0:
             meatItems.remove(i)
     for i in vegetableItems:
-        if is_float_zero(i.quantity):
-            print("remove: ", i.name)
+        if i.quantity == 0:
             vegetableItems.remove(i)
+    for i in otherItems:
+        if i.quantity == 0:
+            otherItems.remove(i)
     kindOfMeat = len(meatItems)
     kindOfVegetable = len(vegetableItems)
-    
+    kindOfOther = len(otherItems)
 
 # 生成今日菜单
 def getTodayFood(count, items, avr) -> list[pf.FoodItem]:
@@ -88,34 +65,73 @@ def getTodayFood(count, items, avr) -> list[pf.FoodItem]:
             foodItem.quantity = item.quantity
             item.quantity = 0
         else:
-            foodItem.quantity = item.quantity
+            foodItem.quantity = averageQtyToday
             item.quantity = item.quantity - averageQtyToday
         foodItem.totalPrice = foodItem.quantity * foodItem.price
+        item.totalPrice = item.quantity * item.price
         todayItems.append(foodItem)
     return todayItems
-    
 
-totalCost = 0.0
+for f in foodItems:
+    if f.category == pf.Category.MEAT:
+        totalMeatQty = totalMeatQty + f.quantity
+        meatItems.append(f)
+    if f.category == pf.Category.VEGETABLE:
+        totalVegetableQty = totalVegetableQty + f.quantity
+        vegetableItems.append(f)
+    if f.category == pf.Category.OTHER:
+        totalOtherQty = totalOtherQty + f.quantity
+        otherItems.append(f)
+
+# 肉的种类个数
+kindOfMeat = len(meatItems)
+
+# 蔬菜种类个数
+kindOfVegetable = len(vegetableItems)
+        
+# 计算人次
 for o in orderItems:
-    print(o.date)
-    todayCount = o.breakfast + o.lunch + o.dinner
-    
-    todayMeat = getTodayFood(todayCount, meatItems, averageMeatQty)
-    todayVegetable = getTodayFood(todayCount, vegetableItems, averageVegetableQty)
-    
-    todayFoods = todayMeat + todayVegetable
+    peopleCount = peopleCount + o.breakfast + o.lunch + o.dinner
+
+print("肉类总量：", totalMeatQty)
+print("蔬菜总量：", totalVegetableQty)
+print("总人次：", peopleCount)
+
+# 计算这个月的人均肉量和菜量
+averageMeatQty = totalMeatQty / peopleCount
+averageVegetableQty = totalVegetableQty / peopleCount
+averageOtherQty = totalOtherQty / peopleCount
+print("人均肉量：", averageMeatQty)
+print("人均菜量：", averageVegetableQty)
+print("人均其他食材量：", averageOtherQty)
+
+result = []
+totalCost = 0.0
+randomDayBuySeasoning = random.randint(0, len(orderItems) - 1)
+for i, o in enumerate(orderItems):
+    todayFoods = []
+    if i == len(orderItems) - 1:
+        todayFoods = meatItems + vegetableItems + otherItems
+    else:
+        todayCount = o.breakfast + o.lunch + o.dinner
+        todayMeat = getTodayFood(todayCount, meatItems, averageMeatQty)
+        todayVegetable = getTodayFood(todayCount, vegetableItems, averageVegetableQty)
+        todayOther = getTodayFood(todayCount, otherItems, averageOtherQty)
+        todayFoods = todayMeat + todayVegetable + todayOther
+
     foodString = ""
-    foodCost  = 0.0
+    foodCost  = Fraction()
     for food in todayFoods:
         foodString = foodString + food.name + '、'
         foodCost = foodCost + food.totalPrice
     
     totalCost = totalCost + foodCost
-    print(o.date, " | ", foodString, " | ", foodCost)
     
+    result.append(wre.Result(o.date, foodString, float(foodCost)))
+    print(o.date, " | ", foodString, " | ", float(foodCost))
     
     filterFoodItems()
+    
+wre.write_result("采购单.xlsx", "result", result)
 
 print("totalCost: ", totalCost)
-    
-pass

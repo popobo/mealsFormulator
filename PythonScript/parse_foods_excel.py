@@ -1,6 +1,7 @@
 import enum
 from typing import List
 import pandas as pd
+from fractions import Fraction
 
 class Unit(enum.Enum):
     JIN = "斤"
@@ -14,12 +15,13 @@ class Category(enum.Enum):
     SEASONING = "调"
 
 class FoodItem:
-    def __init__(self, name: str, unit: Unit, quantity: float, price: float, category: Category):
+    def __init__(self, name: str, unit: Unit, quantity: Fraction, price: Fraction, category: Category):
         self.name = name
         self.unit = unit
         self.quantity = quantity
         self.price = price
         self.category = category
+        self.totalPrice = quantity * price
     
     def print(self):
         print("name:", self.name)
@@ -39,7 +41,7 @@ def read_food_items_from_excel(file_path: str, sheet_name: str) -> List[FoodItem
         price = row['单价']
         category = Category(row['种类'])
 
-        food_item = FoodItem(name, unit, quantity, price, category)
+        food_item = FoodItem(name, unit, Fraction(quantity), Fraction(price), category)
         food_items.append(food_item)
 
     return food_items
