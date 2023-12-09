@@ -7,6 +7,7 @@ class Unit(enum.Enum):
     JIN = "斤"
     BOTTLE = "瓶"
     PACKAGE = "包"
+    PIECE = "块"
 
 class Category(enum.Enum):
     MEAT = "荤"

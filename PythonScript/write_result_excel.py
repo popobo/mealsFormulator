@@ -1,4 +1,5 @@
 import openpyxl
+from typing import List
 
 class Result:
     def __init__(self, date, foodString, cost) -> None:
@@ -6,7 +7,7 @@ class Result:
         self.foodString = foodString
         self.cost = cost
         
-def write_result(filePath: str, sheetName: str, result: list[Result]):
+def write_result(filePath: str, sheetName: str, result: List[Result]):
     workbook = openpyxl.load_workbook(filePath)
     
     sheet = workbook.create_sheet(sheetName)

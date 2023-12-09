@@ -1,4 +1,5 @@
 import openpyxl
+from typing import List
 
 # 创建一个类来存储报餐情况
 class Meal:
@@ -19,7 +20,7 @@ def is_number(variable):
     return isinstance(variable, (int, float, complex))
 
 # def read_food_items_from_excel(file_path: str, sheet_name: str) -> List[FoodItem]:
-def parse_order_excel(file_path: str, sheet_name: str) -> list[Meal]:
+def parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
     # 打开 Excel 文件
     workbook = openpyxl.load_workbook(file_path)
 

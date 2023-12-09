@@ -4,6 +4,7 @@ import write_result_excel as wre
 import random
 import copy
 from fractions import Fraction
+from typing import List
 
 foodItems = pf.read_food_items_from_excel("采购单.xlsx", "食材明细")
 orderItems = po.parse_order_excel("采购单.xlsx", "报餐情况")
@@ -46,7 +47,9 @@ def filterFoodItems():
     kindOfOther = len(otherItems)
 
 # 生成今日菜单
-def getTodayFood(count, items, avr) -> list[pf.FoodItem]:
+def getTodayFood(count, items, avr) -> List[pf.FoodItem]:
+    if len(items) == 0:
+        return []
     # 今天要有几种食材，随机
     kinds = len(items)
     todayKinds= random.randint(1, kinds)
