@@ -1,13 +1,18 @@
 import parse_foods_excel as pf
 import parse_order_excel as po
+import parse_config_excel as pc
 import write_result_excel as wre
 import random
 import copy
+import math
 from fractions import Fraction
 from typing import List
 
 foodItems = pf.read_food_items_from_excel("采购单.xlsx", "食材明细")
 orderItems = po.parse_order_excel("采购单.xlsx", "报餐情况")
+meatConfig = pc.read_config_from_excel("采购单.xlsx", "参数设置", 0)
+vegetableConfig = pc.read_config_from_excel("采购单.xlsx", "参数设置", 1)
+otherConfig = pc.read_config_from_excel("采购单.xlsx", "参数设置", 2)
 
 totalMeatQty = Fraction()
 totalVegetableQty = Fraction()
@@ -46,19 +51,23 @@ def filterFoodItems():
     kindOfVegetable = len(vegetableItems)
     kindOfOther = len(otherItems)
 
+def getTodayMealKinds(count, config):
+    if count < 3:
+        return config.initialValue
+    return (int)(config.initialValue + config.mealsKindsStep * math.ceil((count - 3) / config.peopleCountStep))
+
 # 生成今日菜单
-def getTodayFood(count, items, avr) -> List[pf.FoodItem]:
+def getTodayFood(todayKinds, count, items, avr) -> List[pf.FoodItem]:
     if len(items) == 0:
         return []
-    # 今天要有几种食材，随机
-    kinds = len(items)
-    todayKinds= random.randint(1, kinds)
     # 每种食材的数量
     averageQtyToday = (count * avr) / todayKinds
     # 选出几种食材
     todayItems = []
     tempItems = items[:]
     for i in range(0, todayKinds):
+        if len(tempItems) == 0:
+            break
         item = tempItems[random.randint(0, len(tempItems) - 1)]
         # 已选中删除掉，防止再次选中
         tempItems.remove(item)
@@ -117,9 +126,15 @@ for i, o in enumerate(orderItems):
         todayFoods = meatItems + vegetableItems + otherItems
     else:
         todayCount = o.breakfast + o.lunch + o.dinner
-        todayMeat = getTodayFood(todayCount, meatItems, averageMeatQty)
-        todayVegetable = getTodayFood(todayCount, vegetableItems, averageVegetableQty)
-        todayOther = getTodayFood(todayCount, otherItems, averageOtherQty)
+        todayKinds = getTodayMealKinds(todayCount)
+        
+        kinds = todayKinds / 3
+        meatKinds = kinds
+        if todayKinds % 3 != 0:            
+            meatKinds = meatKinds + 1
+        todayMeat = getTodayFood(meatKinds, todayCount, meatItems, averageMeatQty)
+        todayVegetable = getTodayFood(kinds, todayCount, vegetableItems, averageVegetableQty)
+        todayOther = getTodayFood(kinds, todayCount, otherItems, averageOtherQty)
         todayFoods = todayMeat + todayVegetable + todayOther
 
     foodString = ""

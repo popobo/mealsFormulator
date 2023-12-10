@@ -14,6 +14,7 @@ class Category(enum.Enum):
     VEGETABLE = "素"
     OTHER = "其他"
     SEASONING = "调"
+    MAIN = "主"
 
 class FoodItem:
     def __init__(self, name: str, unit: Unit, quantity: Fraction, price: Fraction, category: Category):
@@ -23,6 +24,7 @@ class FoodItem:
         self.price = price
         self.category = category
         self.totalPrice = quantity * price
+        self.averageQty = Fraction()
     
     def print(self):
         print("name:", self.name)

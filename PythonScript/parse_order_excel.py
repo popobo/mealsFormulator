@@ -8,6 +8,7 @@ class Meal:
         self.breakfast = breakfast
         self.lunch = lunch
         self.dinner = dinner
+        self.totalCount = breakfast + lunch + dinner
         self.totalCost = totalCost
         
     def print(self):
@@ -20,7 +21,7 @@ def is_number(variable):
     return isinstance(variable, (int, float, complex))
 
 # def read_food_items_from_excel(file_path: str, sheet_name: str) -> List[FoodItem]:
-def parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
+def  parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
     # 打开 Excel 文件
     workbook = openpyxl.load_workbook(file_path)
 
