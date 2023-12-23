@@ -21,7 +21,7 @@ def is_number(variable):
     return isinstance(variable, (int, float, complex))
 
 # def read_food_items_from_excel(file_path: str, sheet_name: str) -> List[FoodItem]:
-def  parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
+def parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
     # 打开 Excel 文件
     workbook = openpyxl.load_workbook(file_path)
 
@@ -51,6 +51,10 @@ def  parse_order_excel(file_path: str, sheet_name: str) -> List[Meal]:
     workbook.close()
     
     return meals
+
+def sort_meals_by_total_cost(meals):
+    sorted_meals = sorted(meals, key=lambda meal: meal.totalCost, reverse=True)
+    return sorted_meals
     
 if __name__ == "__main__":
     parse_order_excel("采购单.xlsx", "报餐人数")

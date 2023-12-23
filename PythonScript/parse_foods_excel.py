@@ -8,6 +8,16 @@ class Unit(enum.Enum):
     BOTTLE = "瓶"
     PACKAGE = "包"
     PIECE = "块"
+    BOX = "箱"
+    BUCKET = "桶"
+    
+    @staticmethod
+    def from_string(label):
+        for member in Unit:
+            if member.value == label:
+                return member
+        # 如果没有找到匹配的枚举成员，可以抛出一个异常或返回None
+        raise ValueError(f"'{label}' is not a valid value for {Unit.__name__}.")
 
 class Category(enum.Enum):
     MEAT = "荤"
